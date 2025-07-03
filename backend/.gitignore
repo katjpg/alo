@@ -1,0 +1,12 @@
+# env files
+.env
+/venv
+
+# pycache
+**/__pycache__
+
+# DS_Store
+.DS_Store
+
+# misc 
+/notebooks
