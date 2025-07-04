@@ -3,6 +3,14 @@
 ## Getting Started
 
 ```bash
+
+git clone https://github.com/katjpg/alo
+cd alo/backend
+
+# Setting up venv
+python3.11 -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
 # Install dependencies
 pip install -r requirements.txt
 
