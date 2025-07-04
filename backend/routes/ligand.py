@@ -9,9 +9,9 @@ from services.properties import calc_props
 from utils.parse_validate import validate_ligand, parse_ligand
 from utils.draw import draw_molecule
 
-router = APIRouter(tags=["Properties"])
+router = APIRouter(tags=["Ligand"])
 
-@router.post("/properties/", response_model=LigandPropResponse)
+@router.post("/ligand/properties", response_model=LigandPropResponse)
 def get_props(request: LigandPropRequest):
     try:
         props = calc_props(request.smiles)
