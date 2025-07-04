@@ -38,6 +38,10 @@ The ALO interface is a Next.js 15 application that includes visual thought trees
 ## Getting Started
 
 ```bash
+
+git clone https://github.com/katjpg/alo.git
+cd alo/frontend
+
 # Install dependencies
 pnpm install
 
