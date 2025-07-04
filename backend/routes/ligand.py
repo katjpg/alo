@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from models.ligand import (
     LigandPropRequest, LigandPropResponse,
-    LigandValidateRequest, LigandValidateResponse
+    LigandValidateRequest, LigandValidateResponse,
+    LigandDrawRequest, LigandDrawResponse
     )
 
 from services.properties import calc_props
