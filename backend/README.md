@@ -4,7 +4,7 @@
 
 ```bash
 
-git clone https://github.com/katjpg/alo
+git clone https://github.com/katjpg/alo.git
 cd alo/backend
 
 # Setting up venv
