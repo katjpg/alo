@@ -6,6 +6,7 @@ from models.ligand import (
 
 from services.properties import calc_props
 from utils.parse_validate import validate_ligand
+from utils.draw import draw_molecule
 
 router = APIRouter(tags=["Properties"])
 
@@ -23,6 +24,14 @@ def validate(request: LigandValidateRequest):
     return LigandValidateResponse(is_valid=is_valid, canonical_smiles=canonical_smiles)
 
 
-# TODO: @router.post("/ligand/draw", response_model=LigandDrawResponse)
-# TODO: def draw(request: LigandDrawRequest)
-# TODO: parse ligand via parse_ligand -> draw molecule 
+@router.post("/ligand/draw", response_model=LigandDrawResponse)
+def draw(request: LigandDrawRequest):
+    # Parse ligand
+    mol = parse_ligand(request.ligand_data, request.input_type)
+    if mol is None:
+        raise HTTPException(status_code=400, detail="Invalid ligand data")
+    
+    # Draw single molecule
+    image = draw_molecule(mol, size=request.image_size)
+    
+    return LigandDrawResponse(image=image)
