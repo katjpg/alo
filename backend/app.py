@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import properties
+from routes import ligand
 
 app = FastAPI()
-app.include_router(properties.router)
+app.include_router(ligand.router)
