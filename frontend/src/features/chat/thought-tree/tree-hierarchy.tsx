@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   Background,
   Controls,
@@ -11,16 +11,29 @@ import {
   useEdgesState,
   type OnConnect,
   BackgroundVariant,
+  type NodeMouseHandler,
+  type ReactFlowProps,
 } from "@xyflow/react";
 
 import "@xyflow/react/dist/style.css";
+import "@/styles/canvas.css";
 
 import { nodeTypes } from "./nodes";
 import { edgeTypes } from "./edges";
-import { initialNodes, initialEdges, type ThoughtTreeNode, type ThoughtTreeEdge } from "./data/mock-data";
+import { 
+  initialNodes, 
+  initialEdges, 
+  type ThoughtTreeNode, 
+  type ThoughtTreeEdge 
+} from "./data/mock-data";
+import type { ToolType } from "@/features/canvas/components/thought-tree-canvas";
 
-export default function TreeHierarchy() {
-  const [nodes, , onNodesChange] = useNodesState<ThoughtTreeNode>(initialNodes);
+interface TreeHierarchyProps {
+  activeTool: ToolType;
+}
+
+export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
+  const [nodes, setNodes, onNodesChange] = useNodesState<ThoughtTreeNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<ThoughtTreeEdge>(initialEdges);
   
   const onConnect: OnConnect = useCallback(
@@ -28,8 +41,93 @@ export default function TreeHierarchy() {
     [setEdges]
   );
 
+  // Handle canvas click based on active tool
+  const handlePaneClick: ReactFlowProps["onPaneClick"] = useCallback((event) => {
+    if (activeTool === "text") {
+      // Get click position
+      const reactFlowBounds = (event.target as HTMLElement).getBoundingClientRect();
+      const position = {
+        x: event.clientX - reactFlowBounds.left,
+        y: event.clientY - reactFlowBounds.top,
+      };
+      
+      // Add a text node
+      const newNode: ThoughtTreeNode = {
+        id: `text-${Date.now()}`,
+        type: "molecule-node", // Temporarily using molecule-node, you can create a text-node type
+        position,
+        data: {
+          name: "New Text",
+          smiles: "",
+          properties: [],
+        },
+      };
+      
+      setNodes((nds) => [...nds, newNode]);
+    } else if (activeTool === "node") {
+      // Get click position
+      const reactFlowBounds = (event.target as HTMLElement).getBoundingClientRect();
+      const position = {
+        x: event.clientX - reactFlowBounds.left,
+        y: event.clientY - reactFlowBounds.top,
+      };
+      
+      // Add a molecule node
+      const newNode: ThoughtTreeNode = {
+        id: `node-${Date.now()}`,
+        type: "molecule-node",
+        position,
+        data: {
+          name: "New Molecule",
+          smiles: "C1=CC=CC=C1",
+          properties: [
+            { name: "MW", value: 78.11, unit: "g/mol" },
+            { name: "LogP", value: 2.13 },
+          ],
+        },
+      };
+      
+      setNodes((nds) => [...nds, newNode]);
+    }
+  }, [activeTool, setNodes]);
+
+  // Handle node click based on active tool
+  const handleNodeClick: NodeMouseHandler = useCallback((event, node) => {
+    if (activeTool === "select") {
+      // Default selection behavior
+    } else if (activeTool === "hand") {
+      // Prevent selection when using hand tool
+      event.stopPropagation();
+    }
+  }, [activeTool]);
+
+  // Configure interaction based on active tool
+  const panOnDrag = activeTool === "hand" ? true : false;
+  const selectionOnDrag = activeTool === "select" ? true : false;
+  const nodesDraggable = activeTool === "select" ? true : false;
+  const nodesConnectable = activeTool === "select" ? true : false;
+  const elementsSelectable = activeTool === "select" ? true : false;
+
+  // Add keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Let parent component handle tool switching
+      // This is just for tool-specific actions
+      if (event.key === "Delete" || event.key === "Backspace") {
+        if (activeTool === "select") {
+          // Delete selected nodes
+          setNodes((nds) => nds.filter((node) => !node.selected));
+          setEdges((eds) => eds.filter((edge) => !edge.selected));
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [activeTool, setNodes, setEdges]);
+
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full" data-tool={activeTool}>
       <ReactFlow<ThoughtTreeNode, ThoughtTreeEdge>
         nodes={nodes}
         nodeTypes={nodeTypes}
@@ -38,6 +136,13 @@ export default function TreeHierarchy() {
         edgeTypes={edgeTypes}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onPaneClick={handlePaneClick}
+        onNodeClick={handleNodeClick}
+        panOnDrag={panOnDrag}
+        selectionOnDrag={selectionOnDrag}
+        nodesDraggable={nodesDraggable}
+        nodesConnectable={nodesConnectable}
+        elementsSelectable={elementsSelectable}
         fitView
         proOptions={{ hideAttribution: true }}
       >

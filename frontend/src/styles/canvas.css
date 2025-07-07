@@ -1,0 +1,30 @@
+/* Canvas tool cursors */
+.react-flow__container[data-tool="hand"] {
+  cursor: grab !important;
+}
+
+.react-flow__container[data-tool="hand"]:active {
+  cursor: grabbing !important;
+}
+
+.react-flow__container[data-tool="text"] {
+  cursor: text !important;
+}
+
+.react-flow__container[data-tool="node"] {
+  cursor: crosshair !important;
+}
+
+.react-flow__container[data-tool="select"] {
+  cursor: default !important;
+}
+
+/* Override node hover cursor based on tool */
+.react-flow__container[data-tool="hand"] .react-flow__node {
+  cursor: grab !important;
+}
+
+.react-flow__container[data-tool="text"] .react-flow__node,
+.react-flow__container[data-tool="node"] .react-flow__node {
+  cursor: crosshair !important;
+}

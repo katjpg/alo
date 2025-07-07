@@ -1,6 +1,6 @@
 
-import TreeHierarchy from "@/features/chat/thought-tree/tree-hierarchy"
+import { ThoughtTreeCanvas } from "@/features/canvas/components/thought-tree-canvas"
 
 export default function ChatPage() {
-  return <TreeHierarchy />
+  return <ThoughtTreeCanvas />
 }
