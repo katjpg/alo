@@ -6,6 +6,8 @@ import { IconMessage, IconX } from "@tabler/icons-react";
 import { ChatInput } from "@/features/chat/components/chat-input";
 import TreeHierarchy from "@/features/chat/thought-tree/tree-hierarchy";
 import { CanvasToolbar } from "./canvas-toolbar";
+import { NodeDetailsPanel } from "./node-details-panel";
+import { useRightPanelState } from "@/hooks/use-right-panel";
 import { cn } from "@/lib/utils";
 
 export type ToolType = "select" | "hand" | "text" | "node";
@@ -14,6 +16,7 @@ export function ThoughtTreeCanvas() {
   const [showChat, setShowChat] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolType>("select");
   const [isMobile, setIsMobile] = useState(false);
+  const { isOpen: showRightPanel } = useRightPanelState();
 
   const toggleChat = useCallback(() => {
     setShowChat(!showChat);
@@ -126,6 +129,13 @@ export function ThoughtTreeCanvas() {
           <IconMessage size={20} />
         </Button>
       </div>
+
+      {/* Right Panel - Overlay */}
+      {showRightPanel && !isMobile && (
+        <div className="absolute top-0 right-0 bottom-0 w-[280px] bg-background border-l border-border shadow-lg z-10 transition-transform duration-200 transform translate-x-0">
+          <NodeDetailsPanel />
+        </div>
+      )}
     </div>
   );
 }

@@ -27,6 +27,8 @@ import {
   type ThoughtTreeEdge 
 } from "./data/mock-data";
 import type { ToolType } from "@/features/canvas/components/thought-tree-canvas";
+import { useSelectedNode } from "@/hooks/use-selected-node";
+import { useRightPanelState } from "@/hooks/use-right-panel";
 
 interface TreeHierarchyProps {
   activeTool: ToolType;
@@ -35,6 +37,8 @@ interface TreeHierarchyProps {
 export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<ThoughtTreeNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<ThoughtTreeEdge>(initialEdges);
+  const { setSelectedNode, clearSelection } = useSelectedNode();
+  const { setIsOpen: setRightPanelOpen } = useRightPanelState();
   
   const onConnect: OnConnect = useCallback(
     (connection) => setEdges((edges) => addEdge(connection, edges)),
@@ -43,7 +47,11 @@ export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
 
   // Handle canvas click based on active tool
   const handlePaneClick: ReactFlowProps["onPaneClick"] = useCallback((event) => {
-    if (activeTool === "text") {
+    if (activeTool === "select") {
+      // Clear selection when clicking on canvas
+      clearSelection();
+      setRightPanelOpen(false);
+    } else if (activeTool === "text") {
       // Get click position
       const reactFlowBounds = (event.target as HTMLElement).getBoundingClientRect();
       const position = {
@@ -89,17 +97,19 @@ export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
       
       setNodes((nds) => [...nds, newNode]);
     }
-  }, [activeTool, setNodes]);
+  }, [activeTool, setNodes, clearSelection, setRightPanelOpen]);
 
   // Handle node click based on active tool
   const handleNodeClick: NodeMouseHandler = useCallback((event, node) => {
     if (activeTool === "select") {
-      // Default selection behavior
+      // Store the selected node and open right panel
+      setSelectedNode(node as ThoughtTreeNode);
+      setRightPanelOpen(true);
     } else if (activeTool === "hand") {
       // Prevent selection when using hand tool
       event.stopPropagation();
     }
-  }, [activeTool]);
+  }, [activeTool, setSelectedNode, setRightPanelOpen]);
 
   // Configure interaction based on active tool
   const panOnDrag = activeTool === "hand" ? true : false;
