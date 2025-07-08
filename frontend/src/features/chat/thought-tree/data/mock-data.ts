@@ -33,7 +33,7 @@ export type ThoughtTreeNode =
 
 export type ThoughtTreeEdge = Edge<any, 'decomposition-edge' | 'generation-edge' | 'editing-edge'>;
 
-// Your actual molecular data
+// Sample molecular data
 const molecularData = [
   {smiles: "c1ccc2c(c1)ncc(C(=O)O)c2Cl", bbbp: 0.42, mutagenicity: 0.65, hia: 0.71, plogp: 1.85, qed: 0.48, drd2: 0.18, sas: 2.45, node_id: "starting", node_type: "root"},
   {smiles: "c1ccc2c(c1)ncc(C(=O)N)c2Cl", bbbp: 0.68, mutagenicity: 0.52, hia: 0.78, plogp: 2.12, qed: 0.61, drd2: 0.22, sas: 2.38, node_id: "G-1", node_type: "cluster"},
@@ -52,17 +52,21 @@ const molecularData = [
   {smiles: "Cc1cc2ccccc2nc1C(=O)NC", bbbp: 0.56, mutagenicity: 0.64, hia: 0.82, plogp: 1.98, qed: 0.58, drd2: 0.31, sas: 2.28, node_id: "G-4-2", node_type: "generated"},
 ];
 
-// Helper function to calculate positions
+// Helper function to calculate positions with more spacing
 function calculateNodePosition(nodeId: string, index: number): { x: number; y: number } {
+  const horizontalSpacing = 800; // Increased from 600
+  const verticalSpacing = 600; // Increased from 400
+  const nodeSpacing = 400; // Increased from 300
+  
   // Starting molecule at the top center
   if (nodeId === 'starting') {
-    return { x: 800, y: 100 };
+    return { x: 1600, y: 100 };
   }
   
   // Clusters in a row
   if (nodeId.match(/^G-\d+$/)) {
     const clusterNum = parseInt(nodeId.split('-')[1]);
-    return { x: 200 + (clusterNum - 1) * 400, y: 400 };
+    return { x: 400 + (clusterNum - 1) * horizontalSpacing, y: 100 + verticalSpacing };
   }
   
   // Generated molecules
@@ -71,15 +75,15 @@ function calculateNodePosition(nodeId: string, index: number): { x: number; y: n
     const clusterNum = parseInt(cluster);
     const molNum = parseInt(num);
     return { 
-      x: 200 + (clusterNum - 1) * 400 + (molNum - 1) * 150 - 75, 
-      y: 700 
+      x: 400 + (clusterNum - 1) * horizontalSpacing + (molNum - 1) * nodeSpacing - nodeSpacing/2, 
+      y: 100 + verticalSpacing * 2 
     };
   }
   
   // Optimized molecules
   if (nodeId.match(/^G-\d+-X$/)) {
     const clusterNum = parseInt(nodeId.split('-')[1]);
-    return { x: 200 + (clusterNum - 1) * 400, y: 1000 };
+    return { x: 400 + (clusterNum - 1) * horizontalSpacing, y: 100 + verticalSpacing * 3 };
   }
   
   return { x: 0, y: 0 };
@@ -143,7 +147,7 @@ export const initialNodes: ThoughtTreeNode[] = molecularData.map((mol, index) =>
 // Generate edges based on node relationships
 export const initialEdges: ThoughtTreeEdge[] = [];
 
-// Add decomposition edges (starting → clusters)
+// Add decomposition edges (starting -> clusters)
 const clusters = molecularData.filter(m => m.node_type === 'cluster');
 clusters.forEach(cluster => {
   initialEdges.push({
@@ -155,7 +159,7 @@ clusters.forEach(cluster => {
   });
 });
 
-// Add generation edges (clusters → generated molecules)
+// Add generation edges (clusters -> generated molecules)
 molecularData.forEach(mol => {
   if (mol.node_type === 'generated') {
     const clusterId = mol.node_id.split('-').slice(0, 2).join('-');

@@ -105,7 +105,7 @@ export function ThoughtTreeCanvas() {
         isMobile && showChat && "hidden"
       )}>
         {/* Thought Tree Canvas */}
-        <TreeHierarchy activeTool={activeTool} />
+        <TreeHierarchy activeTool={activeTool} onToolChange={setActiveTool} />
         
         {/* Canvas Toolbar */}
         <CanvasToolbar 
@@ -119,7 +119,7 @@ export function ThoughtTreeCanvas() {
           size="icon"
           onClick={toggleChat}
           className={cn(
-            "absolute bottom-4 left-4 rounded-full shadow-lg",
+            "absolute bottom-4 left-[100px] rounded-full shadow-lg",
             "bg-background/95 backdrop-blur-sm",
             "hover:bg-accent hover:text-accent-foreground",
             "transition-all duration-200",

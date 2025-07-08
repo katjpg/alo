@@ -51,17 +51,17 @@ export default function MoleculeNode({ data, selected, id }: NodeProps) {
       
       <Card
         className={cn(
-          "w-48 h-52 shadow-md transition-all duration-200 p-3",
+          "w-64 shadow-md transition-all duration-200 p-4",
           getNodeStyle(),
           selected && "ring-2 ring-blue-400 ring-offset-2",
           isSelected && "ring-2 ring-primary ring-offset-2 shadow-lg"
         )}
       >
-        <CardContent className="p-0 flex flex-col h-full">
+        <CardContent className="p-0 flex flex-col">
           {/* Molecule structure placeholder */}
-          <div className="w-full h-20 bg-gray-200 rounded-md flex items-center justify-center mb-2 overflow-hidden">
-            <span className="text-gray-500 text-[10px] text-center px-1 break-all">
-              {nodeData.smiles ? nodeData.smiles.slice(0, 30) + '...' : 'Molecule'}
+          <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center mb-2 overflow-hidden">
+            <span className="text-gray-500 text-sm text-center px-4 break-all">
+              {nodeData.smiles ? nodeData.smiles.slice(0, 60) + '...' : 'Molecule'}
             </span>
           </div>
           

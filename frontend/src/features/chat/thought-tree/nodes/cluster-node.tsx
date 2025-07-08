@@ -22,18 +22,18 @@ export default function ClusterNode({ data, selected, id }: NodeProps) {
       
       <Card
         className={cn(
-          "w-48 h-52 shadow-md transition-all duration-200 p-3",
+          "w-64 shadow-md transition-all duration-200 p-4",
           "border-orange-500 bg-orange-50 dark:bg-orange-950",
           selected && "ring-2 ring-orange-400 ring-offset-2",
           isSelected && "ring-2 ring-primary ring-offset-2 shadow-lg"
         )}
       >
-        <CardContent className="p-0 flex flex-col h-full">
+        <CardContent className="p-0 flex flex-col">
           {/* Cluster visualization */}
-          <div className="w-full h-20 bg-orange-100 dark:bg-orange-900 rounded-md flex items-center justify-center border-2 border-dashed border-orange-300 dark:border-orange-700 mb-2">
+          <div className="w-full h-48 bg-orange-100 dark:bg-orange-900 rounded-md flex items-center justify-center border-2 border-dashed border-orange-300 dark:border-orange-700 mb-2">
             <div className="text-center">
-              <IconAtom className="h-6 w-6 text-orange-600 dark:text-orange-400 mx-auto" />
-              <div className="text-orange-600 dark:text-orange-400 text-xs font-medium">
+              <IconAtom className="h-16 w-16 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
+              <div className="text-orange-600 dark:text-orange-400 text-sm font-medium">
                 {nodeData.moleculeCount} molecules
               </div>
             </div>

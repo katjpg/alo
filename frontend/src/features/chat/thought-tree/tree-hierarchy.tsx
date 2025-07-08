@@ -32,9 +32,10 @@ import { useRightPanelState } from "@/hooks/use-right-panel";
 
 interface TreeHierarchyProps {
   activeTool: ToolType;
+  onToolChange: (tool: ToolType) => void;
 }
 
-export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
+export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarchyProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState<ThoughtTreeNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<ThoughtTreeEdge>(initialEdges);
   const { setSelectedNode, clearSelection } = useSelectedNode();
@@ -65,13 +66,24 @@ export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
         type: "molecule-node", // Temporarily using molecule-node, you can create a text-node type
         position,
         data: {
-          name: "New Text",
+          label: "New Text",
+          type: "edited",
           smiles: "",
-          properties: [],
+          properties: {
+            bbbp: 0.5,
+            mutagenicity: 0.5,
+            hia: 0.5,
+            plogp: 2.0,
+            qed: 0.5,
+            drd2: 0.3,
+            sas: 3.0
+          },
         },
       };
       
       setNodes((nds) => [...nds, newNode]);
+      // Switch back to select mode
+      onToolChange('select');
     } else if (activeTool === "node") {
       // Get click position
       const reactFlowBounds = (event.target as HTMLElement).getBoundingClientRect();
@@ -86,18 +98,26 @@ export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
         type: "molecule-node",
         position,
         data: {
-          name: "New Molecule",
+          label: "New Molecule",
+          type: "generated",
           smiles: "C1=CC=CC=C1",
-          properties: [
-            { name: "MW", value: 78.11, unit: "g/mol" },
-            { name: "LogP", value: 2.13 },
-          ],
+          properties: {
+            bbbp: 0.65,
+            mutagenicity: 0.45,
+            hia: 0.75,
+            plogp: 2.13,
+            qed: 0.68,
+            drd2: 0.35,
+            sas: 2.5
+          },
         },
       };
       
       setNodes((nds) => [...nds, newNode]);
+      // Switch back to select mode
+      onToolChange('select');
     }
-  }, [activeTool, setNodes, clearSelection, setRightPanelOpen]);
+  }, [activeTool, setNodes, clearSelection, setRightPanelOpen, onToolChange]);
 
   // Handle node click based on active tool
   const handleNodeClick: NodeMouseHandler = useCallback((event, node) => {
@@ -154,6 +174,8 @@ export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
         nodesConnectable={nodesConnectable}
         elementsSelectable={elementsSelectable}
         fitView
+        minZoom={0.1}
+        maxZoom={4}
         proOptions={{ hideAttribution: true }}
       >
         <Background 
@@ -178,6 +200,7 @@ export default function TreeHierarchy({ activeTool }: TreeHierarchyProps) {
         <Controls 
           className="!bg-white border border-gray-200"
           showInteractive={false}
+          orientation="horizontal"
         />
       </ReactFlow>
     </div>
