@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { IconX, IconCopy, IconDownload, IconShare } from "@tabler/icons-react";
+import { IconX, IconCopy, IconDownload } from "@tabler/icons-react";
 import type { MoleculeNodeData, ClusterNodeData } from "@/features/chat/thought-tree/data/mock-data";
 
 export function NodeDetailsPanel() {
