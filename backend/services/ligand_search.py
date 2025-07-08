@@ -63,5 +63,4 @@ def ligand_search (smiles : str) -> str:
         model="gpt-4.1", 
         messages= messages
     )
-
     return response.choices[0].message.content
