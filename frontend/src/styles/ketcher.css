@@ -33,26 +33,7 @@
   max-height: 100% !important;
 }
 
-/* Toolbar SVGs should maintain their natural size */
-.ketcher-container .toolbar svg,
-.ketcher-container .toolbox svg,
-.ketcher-container button svg,
-.ketcher-container .left-toolbar svg,
-.ketcher-container .right-toolbar svg,
-.ketcher-container .top-toolbar svg,
-.ketcher-container .bottom-toolbar svg {
-  width: auto !important;
-  height: auto !important;
-  max-width: 24px !important;
-  max-height: 24px !important;
-}
 
-/* Prevent SVG from having relative units */
-.ketcher-container svg *[width],
-.ketcher-container svg *[height] {
-  width: auto !important;
-  height: auto !important;
-}
 
 /* Hide Ketcher console output if any */
 .ketcher-container .console,
