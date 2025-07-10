@@ -29,6 +29,7 @@ import {
 import type { ToolType } from "@/features/canvas/components/thought-tree-canvas";
 import { useSelectedNode } from "@/hooks/use-selected-node";
 import { useRightPanelState } from "@/hooks/use-right-panel";
+import { cn } from "@/lib/utils";
 
 interface TreeHierarchyProps {
   activeTool: ToolType;
@@ -39,7 +40,7 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
   const [nodes, setNodes, onNodesChange] = useNodesState<ThoughtTreeNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState<ThoughtTreeEdge>(initialEdges);
   const { setSelectedNode, clearSelection } = useSelectedNode();
-  const { setIsOpen: setRightPanelOpen } = useRightPanelState();
+  const { isOpen: isRightPanelOpen, setIsOpen: setRightPanelOpen } = useRightPanelState();
   
   const onConnect: OnConnect = useCallback(
     (connection) => setEdges((edges) => addEdge(connection, edges)),
@@ -157,7 +158,7 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
   }, [activeTool, setNodes, setEdges]);
 
   return (
-    <div className="w-full h-full" data-tool={activeTool}>
+    <div className={cn("w-full h-full", isRightPanelOpen && "has-right-panel")} data-tool={activeTool}>
       <ReactFlow<ThoughtTreeNode, ThoughtTreeEdge>
         nodes={nodes}
         nodeTypes={nodeTypes}
@@ -200,7 +201,7 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
         <Controls 
           className="!bg-white border border-gray-200"
           showInteractive={false}
-          orientation="horizontal"
+          position="top-right"
         />
       </ReactFlow>
     </div>

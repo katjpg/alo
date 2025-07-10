@@ -3,6 +3,52 @@
   background-color: #f4f7f8;
 }
 
+/* Position zoom controls in the middle-right */
+.react-flow__controls {
+  top: 50% !important;
+  right: 16px !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: translateY(-50%) !important;
+  flex-direction: column !important;
+  transition: right 0.2s ease-in-out !important;
+  transform-origin: right center !important;
+  /* Match toolbar styling */
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 9999px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  padding: 4px !important;
+  gap: 2px !important;
+}
+
+/* Adjust controls position when right panel is open */
+.has-right-panel .react-flow__controls {
+  right: 296px !important;
+}
+
+/* Style control buttons to match toolbar */
+.react-flow__controls-button {
+  margin: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+  font-size: 16px !important;
+  border-radius: 9999px !important;
+  background: transparent !important;
+  border: none !important;
+  transition: all 0.2s !important;
+}
+
+.react-flow__controls-button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.react-flow__controls-button svg {
+  width: 16px !important;
+  height: 16px !important;
+}
+
 /* Canvas tool cursors */
 .react-flow__container[data-tool="hand"] {
   cursor: grab !important;
