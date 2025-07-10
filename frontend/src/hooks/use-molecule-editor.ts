@@ -48,14 +48,6 @@ export function useMoleculeEditor() {
     core: null,
     r1: null
   })
-  const [debugMode] = useState(() => {
-    // Debug mode via URL parameter / localStorage
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      return urlParams.get('debug') === 'true' || localStorage.getItem('ketcherDebug') === 'true'
-    }
-    return false
-  })
   const [properties, setProperties] = useState<MoleculeEditorState['properties']>({
     bbbp: {
       value: 0.8,
@@ -152,14 +144,56 @@ export function useMoleculeEditor() {
     }
   }, [smiles, ketcherInstance])
 
+  const saveSelectedRegion = useCallback(async (region: 'core' | 'r1', selection: any) => {
+    try {
+      const struct = ketcherInstance.editor.struct()
+      
+      // Create a description of the selected atoms
+      const atomDescriptions = selection.atoms.map((atomId: number) => {
+        const atom = struct.atoms.get(atomId)
+        return atom ? `${atom.label}${atomId}` : `atom${atomId}`
+      })
+      
+      // For now, save atom IDs and descriptions
+      // In a real implementation, you'd extract SMILES for the fragment
+      const regionData = {
+        atomIds: selection.atoms,
+        bondIds: selection.bonds || [],
+        description: atomDescriptions.join('-'),
+        timestamp: new Date().toISOString()
+      }
+      
+      setRegions(prev => ({
+        ...prev,
+        [region]: JSON.stringify(regionData)
+      }))
+      
+      // Region saved successfully
+      alert(`${region.toUpperCase()} region saved successfully with ${selection.atoms.length} atoms`)
+      
+      // Clear selection after saving
+      ketcherInstance.editor.selection(null)
+      
+    } catch (error) {
+      console.error('Error saving region:', error)
+      alert('Failed to save region. Please try again.')
+    }
+  }, [ketcherInstance])
+
   const selectRegion = useCallback((region: 'core' | 'r1') => {
-    // Disabled for now - regions functionality not in use
-    return;
+    if (!isValidated || !ketcherInstance) return
     
-    // Original code remains below...
-    if (!isValidated) return
-    setSelectedRegion(region)
-  }, [isValidated])
+    // Get current selection from Ketcher
+    const selection = ketcherInstance.editor.selection()
+    
+    if (selection && selection.atoms && selection.atoms.length > 0) {
+      // Save the current selection as the region
+      saveSelectedRegion(region, selection)
+    } else {
+      // No selection - prompt user to select atoms
+      alert(`Please select atoms in the editor to define the ${region} region`)
+    }
+  }, [isValidated, ketcherInstance, saveSelectedRegion])
 
   const defineRegion = useCallback((atomIds: number[] | { x: number; y: number }) => {
     if (!selectedRegion) return
@@ -254,7 +288,6 @@ export function useMoleculeEditor() {
   }, [])
 
   const handleKetcherInit = useCallback((ketcher: any) => {
-    console.log('Ketcher init callback received in hook')
     
     // Store the instance
     setKetcherInstance(ketcher)
@@ -462,7 +495,6 @@ export function useMoleculeEditor() {
     properties,
     mockSelections,
     ketcherInstance,
-    debugMode,
     
     // Actions
     setSmiles,

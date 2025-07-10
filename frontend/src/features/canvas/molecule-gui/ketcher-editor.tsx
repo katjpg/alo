@@ -58,8 +58,6 @@ export function KetcherEditor({
   }, [])
 
   const handleKetcherInit = (ketcher: any) => {
-    console.log('Ketcher initialized')
-    
     // Store globally for debugging
     // @ts-ignore
     window.ketcher = ketcher
