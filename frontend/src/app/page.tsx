@@ -1,4 +1,4 @@
-import { ALOAppContainer } from '../features/chat/molecule-gui/alo-app-container'
+import { ALOAppContainer } from '../features/canvas/molecule-gui/alo-app-container'
 import { SidebarOverlay } from '@/components/layout/sidebar-overlay'
 import 'ketcher-react/dist/index.css'
 import '@/styles/ketcher.css'

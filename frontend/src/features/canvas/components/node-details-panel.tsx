@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { IconX, IconCopy, IconDownload } from "@tabler/icons-react";
-import type { MoleculeNodeData, ClusterNodeData } from "@/features/chat/thought-tree/data/mock-data";
+import type { MoleculeNodeData, ClusterNodeData } from "@/features/canvas/thought-tree/data/mock-data";
 
 export function NodeDetailsPanel() {
   const { selectedNode } = useSelectedNode();

@@ -1,7 +1,7 @@
 "use client"
 
 import { create } from 'zustand'
-import type { ThoughtTreeNode } from '@/features/chat/thought-tree/data/mock-data'
+import type { ThoughtTreeNode } from '@/features/canvas/thought-tree/data/mock-data'
 
 interface SelectedNodeState {
   selectedNode: ThoughtTreeNode | null

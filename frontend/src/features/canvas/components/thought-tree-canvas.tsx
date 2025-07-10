@@ -3,8 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { IconMessage, IconX } from "@tabler/icons-react";
-import { ChatInput } from "@/features/chat/components/chat-input";
-import TreeHierarchy from "@/features/chat/thought-tree/tree-hierarchy";
+import { ChatInput } from "@/features/canvas/components/chat-input";
+import TreeHierarchy from "@/features/canvas/thought-tree/tree-hierarchy";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { NodeDetailsPanel } from "./node-details-panel";
 import { useRightPanelState } from "@/hooks/use-right-panel";

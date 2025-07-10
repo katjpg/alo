@@ -1,6 +1,7 @@
 # ALO Interface
 
 > ALO (AI-based Ligand Optimization) is a Human-AI collaborative tool designed to support drug discovery research. It combines fragment-based drug design with AI-driven molecular generation to enable iterative refinement and systematic exploration of molecular optimization pathways.
+> last edited: 7/10 
 
 ## Table of Contents
 - [ALO Interface](#alo-interface)
