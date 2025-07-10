@@ -3,17 +3,11 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ProgressIndicator } from './progress-indicator'
 import { PropertySlider } from './property-slider'
-import { IconBolt, IconInfoCircle } from '@tabler/icons-react'
+import { PropertySelector } from '../components/property-selector'
+import { IconBolt } from '@tabler/icons-react'
 import { cn } from '@/lib/utils'
 import type { MoleculeEditorState } from '@/hooks/use-molecule-editor'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 
 interface ParameterPanelProps {
   smiles: string
@@ -67,10 +61,6 @@ export function ParameterPanel({
         <h2 className="text-base font-semibold text-gray-900 truncate">Optimization Parameters</h2>
       </div>
 
-      {/* Progress Indicator */}
-      <div className="flex-shrink-0 px-3 border-b border-border">
-        <ProgressIndicator steps={getProgress()} />
-      </div>
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
@@ -150,46 +140,64 @@ export function ParameterPanel({
         {/* Properties Section */}
         <div className="p-3">
           <h3 className="text-base font-semibold text-gray-900 mb-3">Target Properties</h3>
-          <div className="space-y-3">
-            {Object.entries(properties).map(([key, prop]) => (
-              <div key={key} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={prop.enabled}
-                      onChange={() => toggleProperty(key as keyof MoleculeEditorState['properties'])}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
+          
+          {/* Property Selector Dropdown */}
+          <div className="mb-4">
+            <PropertySelector
+              selectedProperties={Object.entries(properties)
+                .filter(([_, prop]) => prop.enabled)
+                .map(([key, _]) => {
+                  // Map state keys to PropertySelector IDs
+                  const keyMap: Record<string, string> = {
+                    'bbbp': 'BBBP',
+                    'hia': 'HIA',
+                    'mutag': 'Mutag',
+                    'drd2': 'DRD2',
+                    'plogP': 'plogP',
+                    'qed': 'QED'
+                  }
+                  return keyMap[key] || key
+                })}
+              onPropertyChange={(propertyId, checked) => {
+                // Map PropertySelector IDs to state keys
+                const idMap: Record<string, keyof MoleculeEditorState['properties']> = {
+                  'BBBP': 'bbbp',
+                  'HIA': 'hia',
+                  'Mutag': 'mutag',
+                  'DRD2': 'drd2',
+                  'plogP': 'plogP',
+                  'QED': 'qed'
+                }
+                const propKey = idMap[propertyId]
+                if (propKey) {
+                  toggleProperty(propKey)
+                }
+              }}
+            />
+          </div>
+          
+          {/* Selected Properties with Sliders */}
+          <div className="space-y-4">
+            {Object.entries(properties)
+              .filter(([_, prop]) => prop.enabled)
+              .map(([key, prop]) => (
+                <div key={key} className="space-y-2">
+                  <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-gray-700">{prop.label}</span>
-                  </label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <IconInfoCircle className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p className="text-sm">{prop.tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-                {prop.enabled && (
-                  <div className="ml-6">
-                    <PropertySlider
-                      label=""
-                      value={prop.value}
-                      min={prop.min}
-                      max={prop.max}
-                      step={prop.step}
-                      unit={prop.unit}
-                      onChange={(value) => updateProperty(key as keyof MoleculeEditorState['properties'], value)}
-                      tooltip={prop.tooltip}
-                    />
+                    <span className="text-sm font-semibold text-gray-900">
+                      {prop.value.toFixed(prop.step < 1 ? 1 : 0)}{prop.unit}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  <PropertySlider
+                    label=""
+                    value={prop.value}
+                    min={prop.min}
+                    max={prop.max}
+                    step={prop.step}
+                    onChange={(value) => updateProperty(key as keyof MoleculeEditorState['properties'], value)}
+                  />
+                </div>
+              ))}
           </div>
         </div>
       </div>

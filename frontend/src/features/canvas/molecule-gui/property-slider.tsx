@@ -28,22 +28,19 @@ export function PropertySlider({
 }: PropertySliderProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        {label && (
+      {label && (
+        <div className="flex items-center justify-between">
           <label className="text-sm font-medium text-gray-700">
             {label}
             {tooltip && (
               <span className="ml-1 text-xs text-gray-500">ⓘ</span>
             )}
           </label>
-        )}
-        <span className={cn(
-          "text-sm font-semibold text-gray-900 min-w-[45px] text-right",
-          !label && "ml-auto"
-        )}>
-          {value.toFixed(step < 1 ? 1 : 0)}{unit}
-        </span>
-      </div>
+          <span className="text-sm font-semibold text-gray-900 min-w-[45px] text-right">
+            {value.toFixed(step < 1 ? 1 : 0)}{unit}
+          </span>
+        </div>
+      )}
       
       <Slider
         value={[value]}
