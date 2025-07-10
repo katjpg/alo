@@ -70,6 +70,45 @@ export function KetcherEditor({
     }
   }
 
+  // Ketcher button configuration  
+  const buttonsConfig = {
+    // Hide reaction tools
+    'reaction-arrows': { hidden: true },
+    'reaction-arrow-open-angle': { hidden: true },
+    'reaction-arrow-filled-triangle': { hidden: true },
+    'reaction-arrow-filled-bow': { hidden: true },
+    'reaction-arrow-dashed-open-angle': { hidden: true },
+    'reaction-arrow-failed': { hidden: true },
+    'reaction-arrow-both-ends-filled-triangle': { hidden: true },
+    'reaction-arrow-equilibrium-filled-half-bow': { hidden: true },
+    'reaction-arrow-equilibrium-filled-triangle': { hidden: true },
+    'reaction-arrow-equilibrium-open-angle': { hidden: true },
+    'reaction-arrow-unbalanced-equilibrium-filled-half-bow': { hidden: true },
+    'reaction-arrow-unbalanced-equilibrium-open-half-angle': { hidden: true },
+    'reaction-arrow-unbalanced-equilibrium-large-filled-half-bow': { hidden: true },
+    'reaction-arrow-unbalanced-equilibrium-filled-half-triangle': { hidden: true },
+    'reaction-plus': { hidden: true },
+    'reaction-mapping-tools': { hidden: true },
+    'reaction-map': { hidden: true },
+    'reaction-unmap': { hidden: true },
+    'reaction-automap': { hidden: true },
+    // Hide R-group tools
+    'rgroup': { hidden: true },
+    'rgroup-label': { hidden: true },
+    'rgroup-fragment': { hidden: true },
+    'rgroup-attpoints': { hidden: true },
+    // Hide shape tools
+    'shape': { hidden: true },
+    'shape-ellipse': { hidden: true },
+    'shape-rectangle': { hidden: true },
+    'shape-line': { hidden: true },
+    // Hide other tools
+    'text': { hidden: true },
+    'enhanced-stereo': { hidden: true },
+    'sgroup': { hidden: true },
+    'sgroup-data': { hidden: true }
+  }
+
   return (
     <>
       <KetcherHeader
@@ -116,6 +155,7 @@ export function KetcherEditor({
                   }
                 }}
                 onInit={handleKetcherInit}
+                buttons={buttonsConfig}
               />
             )}
             
