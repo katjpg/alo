@@ -29,6 +29,9 @@ interface ParameterPanelProps {
   toggleProperty: (property: keyof MoleculeEditorState['properties']) => void
   isComplete: () => boolean
   getProgress: () => boolean[]
+  debugMode?: boolean
+  getSelectionInfo?: () => any
+  getSelectionAsSmiles?: () => Promise<any>
 }
 
 export function ParameterPanel({
@@ -44,7 +47,10 @@ export function ParameterPanel({
   updateProperty,
   toggleProperty,
   isComplete,
-  getProgress
+  getProgress,
+  debugMode,
+  getSelectionInfo,
+  getSelectionAsSmiles
 }: ParameterPanelProps) {
   const handleStartDiscovery = () => {
     console.log('Starting discovery with:', {
@@ -107,6 +113,36 @@ export function ParameterPanel({
               <p className="text-xs text-gray-500 text-center">
                 Setting molecule structure in editor...
               </p>
+            )}
+            {debugMode && isValidated && (
+              <>
+                <Button
+                  onClick={() => {
+                    if (getSelectionInfo) {
+                      const selectionData = getSelectionInfo()
+                      console.log('=== Selection Info Debug ===')
+                      console.log(selectionData)
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Log Selection Info (Debug)
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (getSelectionAsSmiles) {
+                      console.log('=== Getting Fragment SMILES ===')
+                      const result = await getSelectionAsSmiles()
+                      console.log('Fragment SMILES Result:', result)
+                    }
+                  }}
+                  variant="outline"
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Get Fragment SMILES (Debug)
+                </Button>
+              </>
             )}
           </div>
         </div>

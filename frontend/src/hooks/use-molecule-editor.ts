@@ -176,6 +176,18 @@ export function useMoleculeEditor() {
       if (ketcherInstance) {
         // You can use this data to send to backend for fragment analysis
         console.log(`Region ${selectedRegion} atoms:`, atomIds)
+        
+        // Example: Get more details about the selected atoms
+        try {
+          const struct = ketcherInstance.editor.struct()
+          const atomLabels = atomIds.map((atomId: number) => {
+            const atom = struct.atoms.get(atomId)
+            return atom ? `${atomId}:${atom.label}` : `${atomId}:?`
+          })
+          console.log(`Region ${selectedRegion} atom details:`, atomLabels.join(', '))
+        } catch (e) {
+          console.warn('Could not get atom details:', e)
+        }
       }
     } else {
       // Legacy mock selection (for backward compatibility)
@@ -252,6 +264,194 @@ export function useMoleculeEditor() {
     window.ketcherInstance = ketcher
   }, [])
 
+  const getSelectionInfo = useCallback(() => {
+    if (!ketcherInstance || !ketcherInstance.editor) {
+      console.warn('Ketcher editor not available')
+      return null
+    }
+
+    try {
+      // Get the current selection
+      const selection = ketcherInstance.editor.selection()
+      
+      if (!selection || (!selection.atoms || selection.atoms.length === 0)) {
+        console.log('No atoms selected')
+        return { atoms: [], bonds: [], summary: { atomCount: 0, bondCount: 0 } }
+      }
+
+      // Get the molecular structure
+      const struct = ketcherInstance.editor.struct()
+      
+      const selectionInfo = {
+        atoms: [] as any[],
+        bonds: [] as any[],
+        summary: {
+          atomCount: 0,
+          bondCount: 0,
+          hasOtherEntities: false
+        }
+      }
+
+      // Process selected atoms
+      if (selection.atoms && selection.atoms.length > 0) {
+        console.log(`Found ${selection.atoms.length} selected atoms:`)
+        
+        selection.atoms.forEach((atomId: number) => {
+          const atom = struct.atoms.get(atomId)
+          if (atom) {
+            const atomInfo = {
+              id: atomId,
+              label: atom.label,
+              position: {
+                x: atom.pp?.x || 0,
+                y: atom.pp?.y || 0
+              },
+              fragment: atom.fragment,
+              charge: atom.charge || 0,
+              isotope: atom.isotope || null,
+              radical: atom.radical || 0,
+              implicitH: atom.implicitH,
+              neighbors: [] as any[]
+            }
+
+            // Get neighbor information
+            try {
+              const neighbors = struct.atomGetNeighbors(atomId)
+              atomInfo.neighbors = neighbors.map((nei: any) => ({
+                atomId: nei.aid,
+                bondId: nei.bid
+              }))
+            } catch (e) {
+              console.warn(`Could not get neighbors for atom ${atomId}`)
+            }
+
+            selectionInfo.atoms.push(atomInfo)
+            console.log(`  Atom ${atomId}: ${atom.label} at (${atomInfo.position.x.toFixed(2)}, ${atomInfo.position.y.toFixed(2)})`)
+          }
+        })
+      }
+
+      // Process selected bonds
+      if (selection.bonds && selection.bonds.length > 0) {
+        console.log(`Found ${selection.bonds.length} selected bonds:`)
+        
+        selection.bonds.forEach((bondId: number) => {
+          const bond = struct.bonds.get(bondId)
+          if (bond) {
+            const bondInfo = {
+              id: bondId,
+              begin: bond.begin,
+              end: bond.end,
+              type: bond.type,
+              stereo: bond.stereo || 0,
+              topology: bond.topology || 0,
+              reactingCenterStatus: bond.reactingCenterStatus || 0
+            }
+            selectionInfo.bonds.push(bondInfo)
+            console.log(`  Bond ${bondId}: connects atoms ${bond.begin} and ${bond.end}`)
+          }
+        })
+      }
+
+      // Update summary
+      selectionInfo.summary.atomCount = selectionInfo.atoms.length
+      selectionInfo.summary.bondCount = selectionInfo.bonds.length
+      selectionInfo.summary.hasOtherEntities = !!(
+        selection.texts?.length || 
+        selection.rxnArrows?.length || 
+        selection.rxnPluses?.length || 
+        selection.simpleObjects?.length
+      )
+
+      console.log('Selection Summary:', selectionInfo.summary)
+      console.log('Full Selection Data:', selectionInfo)
+
+      return selectionInfo
+    } catch (error) {
+      console.error('Error getting selection info:', error)
+      return null
+    }
+  }, [ketcherInstance])
+
+  const getSelectionAsSmiles = useCallback(async () => {
+    if (!ketcherInstance || !ketcherInstance.editor) {
+      console.warn('Ketcher editor not available')
+      return null
+    }
+
+    try {
+      const selection = ketcherInstance.editor.selection()
+      
+      if (!selection || !selection.atoms || selection.atoms.length === 0) {
+        console.log('No atoms selected')
+        return null
+      }
+
+      // Get the full molecule SMILES
+      const fullMoleculeSmiles = await ketcherInstance.getSmiles()
+      
+      // Get the molecular structure
+      const struct = ketcherInstance.editor.struct()
+      
+      // Create a set of selected atoms for quick lookup
+      const selectedAtomSet = new Set(selection.atoms)
+      
+      // Find all bonds that connect selected atoms
+      const selectedBonds = [] as number[]
+      const attachmentPoints = [] as any[]
+      
+      struct.bonds.forEach((bond: any, bondId: number) => {
+        const beginSelected = selectedAtomSet.has(bond.begin)
+        const endSelected = selectedAtomSet.has(bond.end)
+        
+        if (beginSelected && endSelected) {
+          // Both atoms are selected - this bond is part of the fragment
+          selectedBonds.push(bondId)
+        } else if (beginSelected || endSelected) {
+          // One atom is selected, one is not - this is an attachment point
+          attachmentPoints.push({
+            atomIndex: beginSelected ? bond.begin : bond.end,
+            externalAtomIndex: beginSelected ? bond.end : bond.begin
+          })
+        }
+      })
+
+      // Create atom map with essential information
+      const atomMap = selection.atoms.map((atomId: number) => {
+        const atom = struct.atoms.get(atomId)
+        const neighbors = struct.atomGetNeighbors(atomId)
+        return {
+          index: atomId,
+          element: atom?.label || 'C',
+          neighbors: neighbors.map((n: any) => n.aid)
+        }
+      })
+
+      // Create bond map
+      const bondMap = selectedBonds.map((bondId: number) => {
+        const bond = struct.bonds.get(bondId)
+        return {
+          index: bondId,
+          atoms: [bond?.begin, bond?.end],
+          type: bond?.type || 1 // 1=single, 2=double, 3=triple, 4=aromatic
+        }
+      })
+
+      // Return clean JSON structure
+      return {
+        fullMoleculeSmiles,
+        selectedAtomIndices: selection.atoms,
+        selectedBondIndices: selectedBonds,
+        atomMap,
+        bondMap,
+        attachmentPoints
+      }
+    } catch (error) {
+      console.error('Error converting selection to SMILES:', error)
+      return null
+    }
+  }, [ketcherInstance])
+
   return {
     // State
     smiles,
@@ -262,6 +462,7 @@ export function useMoleculeEditor() {
     properties,
     mockSelections,
     ketcherInstance,
+    debugMode,
     
     // Actions
     setSmiles,
@@ -272,6 +473,8 @@ export function useMoleculeEditor() {
     updateProperty,
     toggleProperty,
     handleKetcherInit,
+    getSelectionInfo,
+    getSelectionAsSmiles,
     
     // Computed
     isComplete,
