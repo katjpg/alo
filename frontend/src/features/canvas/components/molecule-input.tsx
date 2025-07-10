@@ -108,7 +108,7 @@ export function MolecularInput({
               className={cn(
                 "flex-1 border-0 bg-transparent px-4 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none shadow-none outline-none",
                 mode === 'chat' 
-                  ? "text-sm min-h-[60px] placeholder:text-sm pt-3 pb-4" 
+                  ? "text-sm min-h-[40px] placeholder:text-sm pt-2 pb-2" 
                   : "text-lg min-h-[80px] placeholder:text-base pt-4 pb-6"
               )}
             />

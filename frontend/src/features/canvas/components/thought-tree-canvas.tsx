@@ -79,7 +79,7 @@ export function ThoughtTreeCanvas() {
       {/* Chat Popup - Fixed Position Left */}
       {showChat && (
         <div className={cn(
-          "absolute left-4 top-[60%] -translate-y-1/2 z-20",
+          "absolute left-4 top-[65%] -translate-y-1/2 z-20",
           "w-80 h-[500px] max-h-[80vh]",
           "bg-background rounded-lg border border-border shadow-2xl",
           "flex flex-col overflow-hidden",
@@ -101,12 +101,11 @@ export function ThoughtTreeCanvas() {
           
           {/* Chat Content */}
           <div className="flex-1 overflow-auto p-4 bg-background">
-            {/* Chat messages will go here */}
           </div>
           
           {/* Chat Input */}
-          <div className="border-t border-border/50 p-4 bg-muted/30">
-            <ChatInput mode="chat" />
+          <div className="border-t border-border/50 p-2 bg-muted/30">
+            <ChatInput />
           </div>
         </div>
       )}
