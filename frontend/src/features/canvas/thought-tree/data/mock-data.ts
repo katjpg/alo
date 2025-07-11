@@ -52,46 +52,11 @@ const molecularData = [
   {smiles: "Cc1cc2ccccc2nc1C(=O)NC", bbbp: 0.56, mutagenicity: 0.64, hia: 0.82, plogp: 1.98, qed: 0.58, drd2: 0.31, sas: 2.28, node_id: "G-4-2", node_type: "generated"},
 ];
 
-// Helper function to calculate positions with more spacing
-function calculateNodePosition(nodeId: string, index: number): { x: number; y: number } {
-  const horizontalSpacing = 800; // Increased from 600
-  const verticalSpacing = 600; // Increased from 400
-  const nodeSpacing = 400; // Increased from 300
-  
-  // Starting molecule at the top center
-  if (nodeId === 'starting') {
-    return { x: 1600, y: 100 };
-  }
-  
-  // Clusters in a row
-  if (nodeId.match(/^G-\d+$/)) {
-    const clusterNum = parseInt(nodeId.split('-')[1]);
-    return { x: 400 + (clusterNum - 1) * horizontalSpacing, y: 100 + verticalSpacing };
-  }
-  
-  // Generated molecules
-  if (nodeId.match(/^G-\d+-\d+$/)) {
-    const [, cluster, num] = nodeId.split('-');
-    const clusterNum = parseInt(cluster);
-    const molNum = parseInt(num);
-    return { 
-      x: 400 + (clusterNum - 1) * horizontalSpacing + (molNum - 1) * nodeSpacing - nodeSpacing/2, 
-      y: 100 + verticalSpacing * 2 
-    };
-  }
-  
-  // Optimized molecules
-  if (nodeId.match(/^G-\d+-X$/)) {
-    const clusterNum = parseInt(nodeId.split('-')[1]);
-    return { x: 400 + (clusterNum - 1) * horizontalSpacing, y: 100 + verticalSpacing * 3 };
-  }
-  
-  return { x: 0, y: 0 };
-}
 
 // Convert molecular data to nodes
-export const initialNodes: ThoughtTreeNode[] = molecularData.map((mol, index) => {
-  const position = calculateNodePosition(mol.node_id, index);
+export const initialNodes: ThoughtTreeNode[] = molecularData.map((mol) => {
+  // Position will be calculated by dagre layout
+  const position = { x: 0, y: 0 };
   
   if (mol.node_type === 'cluster') {
     // For clusters, calculate average properties from their generated molecules

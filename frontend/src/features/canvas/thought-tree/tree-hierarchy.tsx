@@ -26,6 +26,7 @@ import {
   type ThoughtTreeNode, 
   type ThoughtTreeEdge 
 } from "./data/mock-data";
+import { applyDagreLayout } from "./utils/layout";
 import type { ToolType } from "@/features/canvas/components/thought-tree-canvas";
 import { useSelectedNode } from "@/hooks/use-selected-node";
 import { useRightPanelState } from "@/hooks/use-right-panel";
@@ -37,18 +38,33 @@ interface TreeHierarchyProps {
 }
 
 export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarchyProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState<ThoughtTreeNode>(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<ThoughtTreeEdge>(initialEdges);
+  // Apply dagre layout to initial nodes and edges
+  const { nodes: layoutedNodes, edges: layoutedEdges } = applyDagreLayout(
+    initialNodes,
+    initialEdges,
+    'TB' // Vertical layout (Top to Bottom)
+  );
+  
+  const [nodes, setNodes, onNodesChange] = useNodesState<ThoughtTreeNode>(layoutedNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<ThoughtTreeEdge>(layoutedEdges);
   const { setSelectedNode, clearSelection } = useSelectedNode();
   const { isOpen: isRightPanelOpen, setIsOpen: setRightPanelOpen } = useRightPanelState();
   
   const onConnect: OnConnect = useCallback(
-    (connection) => setEdges((edges) => addEdge(connection, edges)),
-    [setEdges]
+    (connection) => {
+      setEdges((currentEdges) => {
+        const newEdges = addEdge(connection, currentEdges);
+        // Re-apply layout when new connections are made
+        const { nodes: layoutedNodes } = applyDagreLayout(nodes, newEdges, 'TB');
+        setNodes(layoutedNodes);
+        return newEdges;
+      });
+    },
+    [setEdges, setNodes, nodes]
   );
 
   // Handle canvas click based on active tool
-  const handlePaneClick: ReactFlowProps["onPaneClick"] = useCallback((event) => {
+  const handlePaneClick: ReactFlowProps["onPaneClick"] = useCallback((event: React.MouseEvent) => {
     if (activeTool === "select") {
       // Clear selection when clicking on canvas
       clearSelection();
@@ -82,7 +98,12 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
         },
       };
       
-      setNodes((nds) => [...nds, newNode]);
+      setNodes((currentNodes) => {
+        const newNodes = [...currentNodes, newNode];
+        // Apply layout to the new nodes
+        const { nodes: layoutedNodes } = applyDagreLayout(newNodes, edges, 'TB');
+        return layoutedNodes;
+      });
       // Switch back to select mode
       onToolChange('select');
     } else if (activeTool === "node") {
@@ -114,11 +135,16 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
         },
       };
       
-      setNodes((nds) => [...nds, newNode]);
+      setNodes((currentNodes) => {
+        const newNodes = [...currentNodes, newNode];
+        // Apply layout to the new nodes
+        const { nodes: layoutedNodes } = applyDagreLayout(newNodes, edges, 'TB');
+        return layoutedNodes;
+      });
       // Switch back to select mode
       onToolChange('select');
     }
-  }, [activeTool, setNodes, clearSelection, setRightPanelOpen, onToolChange]);
+  }, [activeTool, setNodes, clearSelection, setRightPanelOpen, onToolChange, edges]);
 
   // Handle node click based on active tool
   const handleNodeClick: NodeMouseHandler = useCallback((event, node) => {
@@ -147,7 +173,12 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
       if (event.key === "Delete" || event.key === "Backspace") {
         if (activeTool === "select") {
           // Delete selected nodes
-          setNodes((nds) => nds.filter((node) => !node.selected));
+          setNodes((currentNodes) => {
+            const filteredNodes = currentNodes.filter((node) => !node.selected);
+            // Re-apply layout after deletion
+            const { nodes: layoutedNodes } = applyDagreLayout(filteredNodes, edges, 'TB');
+            return layoutedNodes;
+          });
           setEdges((eds) => eds.filter((edge) => !edge.selected));
         }
       }
@@ -155,7 +186,7 @@ export default function TreeHierarchy({ activeTool, onToolChange }: TreeHierarch
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [activeTool, setNodes, setEdges]);
+  }, [activeTool, setNodes, setEdges, edges]);
 
   return (
     <div className={cn("w-full h-full", isRightPanelOpen && "has-right-panel")} data-tool={activeTool}>
