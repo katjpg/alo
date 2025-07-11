@@ -24,8 +24,9 @@
 }
 
 /* Adjust controls position when right panel is open */
+/* Panel now overlays the controls, no adjustment needed */
 .has-right-panel .react-flow__controls {
-  right: 296px !important;
+  right: 16px !important;
 }
 
 /* Style control buttons to match toolbar */
