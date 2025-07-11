@@ -3,10 +3,17 @@ Accessibility validator for hit-to-lead optimization.
 Assesses whether a molecule is synthetically accessible based on SMILES string.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Any
 from rdkit import Chem
 from rdkit.Chem import Descriptors, rdMolDescriptors, Lipinski
 from rdkit.Chem.FilterCatalog import FilterCatalog, FilterCatalogParams
+from .property_predictor import (
+    calculate_current_properties,
+    check_property_feasibility,
+    check_property_combinations,
+    identify_required_modifications,
+    get_max_achievable_delta
+)
 
 # Try to import SA Score - handle if not available
 try:
@@ -264,12 +271,13 @@ def check_complexity_factors(smiles: str) -> List[str]:
     return complexity_factors
 
 
-def validate_accessibility(smiles: str, verbose: bool = False) -> Dict[str, any]:
+def validate_accessibility(smiles: str, target_properties: Optional[Dict[str, float]] = None, verbose: bool = False) -> Dict[str, Any]:
     """
     Main function to check synthetic accessibility for hit-to-lead optimization.
     
     Args:
         smiles: SMILES string to validate
+        target_properties: Optional dictionary of target property values
         verbose: Whether to print detailed results
         
     Returns:
@@ -346,6 +354,68 @@ def validate_accessibility(smiles: str, verbose: bool = False) -> Dict[str, any]
         if sa_score > 6:
             results['score'] = 'warning' if results['score'] == 'pass' else results['score']
             results['warnings'].append(f"High SA score: {sa_score} (>6 indicates difficult synthesis)")
+    
+    # Step 7: Property feasibility analysis (if targets provided)
+    if target_properties:
+        # Calculate current properties
+        current_props = calculate_current_properties(smiles)
+        if current_props:
+            results['current_properties'] = current_props
+            
+            # Filter out None values from target properties
+            filtered_targets = {k: v for k, v in target_properties.items() if v is not None}
+            
+            if filtered_targets:
+                # Check if targets are achievable
+                prop_issues, prop_warnings = check_property_feasibility(current_props, filtered_targets)
+                if prop_issues:
+                    results['accessible'] = False
+                    results['score'] = 'fail'
+                    results['issues'].extend(prop_issues)
+                results['warnings'].extend(prop_warnings)
+                
+                # Check property combinations
+                conflicts = check_property_combinations(filtered_targets)
+                if conflicts:
+                    results['accessible'] = False
+                    results['score'] = 'fail'
+                    results['issues'].extend(conflicts)
+                    results['property_conflicts'] = conflicts
+                
+                # Identify required modifications
+                modifications = identify_required_modifications(current_props, filtered_targets)
+                if modifications:
+                    results['required_modifications'] = modifications
+                
+                # Property gap analysis
+                property_analysis = {}
+                for prop, target_value in filtered_targets.items():
+                    if prop in current_props:
+                        current_value = current_props[prop]
+                        gap = target_value - current_value
+                        achievable = abs(gap) <= get_max_achievable_delta(prop)
+                        
+                        # Determine difficulty
+                        max_delta = get_max_achievable_delta(prop)
+                        gap_ratio = abs(gap) / max_delta if max_delta > 0 else 1
+                        if gap_ratio < 0.3:
+                            difficulty = 'easy'
+                        elif gap_ratio < 0.6:
+                            difficulty = 'moderate'
+                        elif gap_ratio < 1.0:
+                            difficulty = 'hard'
+                        else:
+                            difficulty = 'impossible'
+                        
+                        property_analysis[prop] = {
+                            'current': round(current_value, 3),
+                            'target': round(target_value, 3),
+                            'gap': round(gap, 3),
+                            'achievable': achievable,
+                            'difficulty': difficulty
+                        }
+                
+                results['property_analysis'] = property_analysis
     
     # Print results if verbose
     if verbose:
