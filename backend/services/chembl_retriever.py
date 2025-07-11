@@ -21,7 +21,7 @@ class ChemblRetriever:
         self.similarity = new_client.similarity
         self.query_builder = QueryBuilder()
     
-    def find_similar_compounds(self, smiles: str, similarity_threshold: int = 85) -> List[SimilarCompound]:
+    def find_similar_compounds(self, smiles: str, similarity_threshold: int = 80) -> List[SimilarCompound]:
         """
         Find compounds similar to the input SMILES.
         
@@ -153,7 +153,7 @@ class ChemblRetriever:
         max_results: int = 10
     ) -> Dict:
         """
-        Main method to find optimization papers based on input molecule and properties.
+        Main method to find optimization papers using multi-strategy search.
         
         Args:
             smiles: Input SMILES string
@@ -167,18 +167,72 @@ class ChemblRetriever:
         # Find similar compounds
         similar_compounds = self.find_similar_compounds(smiles)
         
-        # Build optimization query
-        query = self.query_builder.build_optimization_query(list(properties.keys()))
+        # Get compound and target context if similar compounds found
+        compound_names = []
+        target_names = []
         
-        # Search for documents
-        documents = self.search_optimization_papers(query, year_from, max_results)
+        if similar_compounds:
+            mol_ids = [c.molecule_chembl_id for c in similar_compounds]
+            
+            # Get compound names and targets for better search
+            compound_names = self.query_builder.get_compound_names(mol_ids)
+            target_names = self.query_builder.get_target_names(mol_ids[:3])
         
-        # Filter for relevance
-        filtered_documents = self.filter_relevant_papers(documents, properties, max_results)
+        # Multi-strategy document search
+        all_docs = []
+        seen_doc_ids = set()
+        
+        # Strategy 1: Target-based search
+        if target_names:
+            query = self.query_builder.build_target_query(
+                target_names[0], list(properties.keys())[:2]
+            )
+            docs = self.search_optimization_papers(query, year_from, 5)
+            
+            for doc in docs:
+                if doc.document_chembl_id not in seen_doc_ids:
+                    seen_doc_ids.add(doc.document_chembl_id)
+                    doc.search_strategy = 'target_specific'
+                    all_docs.append(doc)
+        
+        # Strategy 2: Compound-specific search
+        if compound_names and len(all_docs) < max_results:
+            query = self.query_builder.build_compound_query(compound_names[0])
+            docs = self.search_optimization_papers(query, year_from, 5)
+            
+            for doc in docs:
+                if doc.document_chembl_id not in seen_doc_ids:
+                    seen_doc_ids.add(doc.document_chembl_id)
+                    doc.search_strategy = 'compound_specific'
+                    all_docs.append(doc)
+        
+        # Strategy 3: Property-focused search
+        if len(all_docs) < max_results:
+            molecule_hint = self.query_builder.infer_molecule_type(target_names)
+            query = self.query_builder.build_property_query(
+                list(properties.keys())[:3], molecule_hint
+            )
+            remaining = max_results - len(all_docs)
+            docs = self.search_optimization_papers(query, year_from, remaining * 2)
+            
+            # Filter for relevance
+            filtered = self.filter_relevant_papers(docs, properties, remaining)
+            
+            for doc in filtered:
+                if doc.document_chembl_id not in seen_doc_ids:
+                    seen_doc_ids.add(doc.document_chembl_id)
+                    doc.search_strategy = 'property_optimization'
+                    all_docs.append(doc)
+        
+        # Sort by year (newest first) and limit
+        all_docs.sort(key=lambda x: x.year or 0, reverse=True)
+        final_docs = all_docs[:max_results]
         
         return {
             'similar_compounds': similar_compounds,
-            'documents': filtered_documents,
-            'query_used': query,
+            'documents': final_docs,
+            'query_used': query if 'query' in locals() else '',
+            'compounds_searched': compound_names[:3],
+            'targets_found': target_names,
             'timestamp': datetime.now().isoformat()
         }

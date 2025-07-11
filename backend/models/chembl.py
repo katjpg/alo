@@ -19,6 +19,8 @@ class ChemblDocument(BaseModel):
     doi_chembl: Optional[str] = None
     pubmed_id: Optional[int] = None
     patent_id: Optional[str] = None
+    # Optional field for search context
+    search_strategy: Optional[str] = None
 
 
 class SimilarCompound(BaseModel):
@@ -40,6 +42,8 @@ class SearchMetadata(BaseModel):
     year_range: str
     query_used: str
     timestamp: str
+    compounds_searched: List[str] = Field(default_factory=list)
+    targets_found: List[str] = Field(default_factory=list)
 
 
 class ChemblSearchResponse(BaseModel):

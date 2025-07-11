@@ -31,8 +31,10 @@ async def search_optimization_papers(request: ChemblSearchRequest):
             total_documents=len(results['documents']),
             properties_searched=list(request.properties.keys()),
             year_range=f"{request.year_from}-present",
-            query_used=results['query_used'],
-            timestamp=results['timestamp']
+            query_used=results.get('query_used', ''),
+            timestamp=results['timestamp'],
+            compounds_searched=results.get('compounds_searched', []),
+            targets_found=results.get('targets_found', [])
         )
         
         # Build response
@@ -61,7 +63,9 @@ async def search_optimization_papers(request: ChemblSearchRequest):
                 properties_searched=list(request.properties.keys()),
                 year_range=f"{request.year_from}-present",
                 query_used="",
-                timestamp=datetime.now().isoformat()
+                timestamp=datetime.now().isoformat(),
+                compounds_searched=[],
+                targets_found=[]
             ),
             error=error_msg
         )
