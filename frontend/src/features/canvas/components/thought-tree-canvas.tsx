@@ -128,7 +128,7 @@ export function ThoughtTreeCanvas() {
 
       {/* Right Panel - Pushes content */}
       {showRightPanel && !isMobile && (
-        <div className="absolute top-0 right-0 bottom-0 w-[30%] bg-background border-l border-border shadow-lg z-10 transition-transform duration-200 transform translate-x-0">
+        <div className="absolute top-0 right-0 bottom-0 w-[30%] min-w-[280px] bg-background border-l border-border shadow-lg z-10 transition-transform duration-200 transform translate-x-0">
           <NodeDetailsPanel />
         </div>
       )}
