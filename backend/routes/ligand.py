@@ -2,10 +2,11 @@ from fastapi import APIRouter, HTTPException
 from models.ligand import (
     LigandPropRequest, LigandPropResponse,
     LigandValidateRequest, LigandValidateResponse,
-    LigandDrawRequest, LigandDrawResponse
-    )
+    LigandDrawRequest, LigandDrawResponse,
+    LigandPropScoreRequest, LigandPropScoreResponse
+)
 
-from services.properties import calc_props
+from services.properties import calc_props, property_score
 from utils.parse_validate import validate_ligand, parse_ligand
 from utils.draw import draw_molecule
 
@@ -36,3 +37,11 @@ def draw(request: LigandDrawRequest):
     image = draw_molecule(mol, size=request.image_size)
     
     return LigandDrawResponse(image=image)
+
+@router.post("/ligand/property_scores", response_model=LigandPropScoreResponse)
+def get_prop_scores(request : LigandPropScoreRequest):
+    try : 
+        scores = property_score(request.smiles, request.properties)
+        return LigandPropScoreResponse(property_scores=scores)
+    except ValueError as e: 
+        raise HTTPException(status_code=400, detail=str(e))

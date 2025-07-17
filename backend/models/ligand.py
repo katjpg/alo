@@ -7,6 +7,13 @@ class LigandPropRequest(BaseModel):
 class LigandPropResponse(BaseModel):
     smiles: str
     properties: dict
+
+class LigandPropScoreRequest(BaseModel):
+    smiles: str
+    properties: list
+
+class LigandPropScoreResponse(BaseModel):
+    property_scores: dict
     
 # Validation models
 class LigandValidateRequest(BaseModel):
