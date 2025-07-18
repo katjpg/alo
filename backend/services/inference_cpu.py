@@ -19,6 +19,7 @@ cuda_available = torch.cuda.is_available()
 device = "cuda" if cuda_available else "cpu"
 torch_type = torch.bfloat16 if cuda_available else torch.float32
 
+
 def generate(
     load_in_8bit: bool = False,
     use_lora: bool = True,
@@ -89,10 +90,12 @@ def generate(
         base_model,
         torch_dtype=torch_type,
         quantization_config=quant_config,
-        device_map=device,
+        device_map = "auto" if cuda_available else {"": "cpu"},
         trust_remote_code=True,
         token=hf_token
     )
+    if not cuda_available: 
+        model.to("cpu")
     print ("Model complete")
 
     if use_lora and device == "cuda":
@@ -120,7 +123,7 @@ def generate(
         model=model,
         tokenizer=tokenizer,
         torch_dtype=torch_type,
-        device_map=device
+        device_map=0 if cuda_available else -1
     )
 
     print ("Pipeline complete")
@@ -149,18 +152,28 @@ def generate(
 def evaluate(prompter, prompts, tokenizer, pipe, batch_size, num_return_sequences=1,
              max_new_tokens=DEFAULT_MAX_NEW_TOKENS, do_sample=False, temperature=1):
     print ("Pipe started")
-    outputs = pipe(
-        prompts,
-        do_sample=do_sample,
-        # max_new_tokens=max_new_tokens,
-        max_new_tokens=32,
-        temperature=temperature,
-        num_return_sequences=num_return_sequences,
-        num_beams=num_return_sequences,
-        pad_token_id=tokenizer.eos_token_id,
-        # batch_size=batch_size
-        batch_size=1
-    )
+    if cuda_available : 
+        outputs = pipe(
+            prompts,
+            do_sample=do_sample,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            num_return_sequences=num_return_sequences,
+            num_beams=num_return_sequences,
+            pad_token_id=tokenizer.eos_token_id,
+            batch_size=batch_size
+        )
+    else : 
+        outputs = pipe(
+            prompts,
+            do_sample=do_sample,
+            max_new_tokens=32,
+            temperature=temperature,
+            num_return_sequences=num_return_sequences,
+            num_beams=num_return_sequences,
+            pad_token_id=tokenizer.eos_token_id,
+        )
+
     print ("Pipe complete")
     batch_results = []
     for i, result in enumerate(outputs):

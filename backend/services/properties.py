@@ -11,8 +11,10 @@ from rdkit.Chem import Descriptors
 from utils.parse_validate import validate_ligand, parse_ligand
 from gym_molecule.envs.molecule import reward_penalized_log_p
 from admet_ai import ADMETModel
+from tdc import Oracle
 
 admet_model = ADMETModel()
+drd2_model = Oracle(name='DRD2')
 
 def calc_props(smiles: str) -> dict:
     m = Chem.MolFromSmiles(smiles)
@@ -30,7 +32,7 @@ def calc_props(smiles: str) -> dict:
 def property_score (smiles: str, properties: str) -> dict : 
 
     model_map = {
-        'drd2': "gym", 
+        'drd2': "tdc", 
         'bbbp': "admet", 
         'mutagenicity': "admet", 
         'plogp': "gym", 
@@ -61,14 +63,15 @@ def property_score (smiles: str, properties: str) -> dict :
     admet_preds = admet_model.predict(smiles=smiles)
     for prop in properties.split('+'):
         prop_model = model_map[prop]
+        prop_score = None
         if prop_model is None : 
             raise ValueError("Invalid property")
         if prop_model == 'gym' and prop == "plogp": 
             prop_score = reward_penalized_log_p(mol)
-            scores[prop] = prop_score
-        elif prop_model == 'gym' and prop == 'drd2' : 
-            continue # modify later
+        elif prop_model == 'tdc' and prop == 'drd2' : 
+            prop_score = drd2_model([smiles])[0]
         elif prop_model == 'admet':
-            scores[prop] = admet_preds[admet_map[prop]]
+            prop_score = admet_preds[admet_map[prop]]
+        scores[prop] = prop_score
 
     return scores
