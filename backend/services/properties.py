@@ -27,25 +27,48 @@ def calc_props(smiles: str) -> dict:
             props[n] = None
     return props
 
-def property_score (smiles: str, properties: list) -> dict : 
+def property_score (smiles: str, properties: str) -> dict : 
+
+    model_map = {
+        'drd2': "gym", 
+        'bbbp': "admet", 
+        'mutagenicity': "admet", 
+        'plogp': "gym", 
+        'qed': "admet", 
+        'ampa': "admet", 
+        'carc': "admet", 
+        'erg': "admet", 
+        'hia': "admet", 
+        'liver': "admet"
+    }
+    admet_map = {
+        'bbbp': "BBB_Martins", 
+        'mutagenicity': "AMES", 
+        'qed': "QED", 
+        'ampa': "PAMPA_NCATS", 
+        'carc': "Carcinogens_Lagunin", 
+        'erg': "hERG", 
+        'hia': "HIA_Hou", 
+        'liver': "DILI"
+    }
+
     valid, smiles = validate_ligand(smiles, "smiles")
     if not valid : 
         raise ValueError("Invalid SMILES")
     mol = parse_ligand(smiles, "smiles")
 
     scores = {}
-
-    if "plogp" in properties: 
-        plogp = reward_penalized_log_p(mol)
-        scores["plogp"] = plogp
-
-    # DRD2 
-
-    # what if some properties returned are longer sentences?
-    # change properties from type dict to type string with '+' separating each prop (same format as molecule_to_json)???
-    preds = admet_model.predict(smiles=smiles)
-    for key, value in preds.items() : 
-        if key in properties : 
-            scores[key] = value
+    admet_preds = admet_model.predict(smiles=smiles)
+    for prop in properties.split('+'):
+        prop_model = model_map[prop]
+        if prop_model is None : 
+            raise ValueError("Invalid property")
+        if prop_model == 'gym' and prop == "plogp": 
+            prop_score = reward_penalized_log_p(mol)
+            scores[prop] = prop_score
+        elif prop_model == 'gym' and prop == 'drd2' : 
+            continue # modify later
+        elif prop_model == 'admet':
+            scores[prop] = admet_preds[admet_map[prop]]
 
     return scores

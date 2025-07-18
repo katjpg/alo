@@ -10,7 +10,7 @@ class LigandPropResponse(BaseModel):
 
 class LigandPropScoreRequest(BaseModel):
     smiles: str
-    properties: list
+    properties: str
 
 class LigandPropScoreResponse(BaseModel):
     property_scores: dict

@@ -18,3 +18,11 @@ class GenerationRequest(BaseModel):
 
 class GenerationResponse(BaseModel):
     output_path: str
+
+class FilterResultRequest(BaseModel):
+    input_data: str
+    output_data: str
+    smiles: str
+
+class FilterResultResponse(BaseModel):
+    output_path: str
